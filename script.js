@@ -319,49 +319,63 @@ function createNodes() {
 
 
 /* =========================================
-   MOUSE MOVE
+   POINTER INTERACTION: MOUSE + TOUCH
 ========================================= */
 
-servicesSection.addEventListener(
-    "mousemove",
-    (event) => {
+let touchReleaseTimer;
 
-        const rect =
-            servicesSection.getBoundingClientRect();
+function updatePointerPosition(event) {
+    const rect = servicesSection.getBoundingClientRect();
 
+    mouse.targetX = event.clientX - rect.left;
+    mouse.targetY = event.clientY - rect.top;
+    mouse.active = true;
+}
 
-        mouse.targetX =
-            event.clientX -
-            rect.left;
+servicesSection.addEventListener("pointermove", (event) => {
+    updatePointerPosition(event);
 
-
-        mouse.targetY =
-            event.clientY -
-            rect.top;
-
-
-        mouse.active = true;
-
+    if (event.pointerType === "touch") {
+        clearTimeout(touchReleaseTimer);
     }
-);
+});
 
+servicesSection.addEventListener("pointerdown", (event) => {
+    updatePointerPosition(event);
 
-/* =========================================
-   MOUSE LEAVE
-========================================= */
+    if (event.pointerType === "touch") {
+        clearTimeout(touchReleaseTimer);
+    }
+});
 
-servicesSection.addEventListener(
-    "mouseleave",
-    () => {
+servicesSection.addEventListener("pointerup", (event) => {
+    if (event.pointerType === "touch") {
+        clearTimeout(touchReleaseTimer);
 
+        // Tap ke baad glow ko thori dair rehne do
+        touchReleaseTimer = setTimeout(() => {
+            mouse.active = false;
+            mouse.targetX = -1000;
+            mouse.targetY = -1000;
+        }, 650);
+    }
+});
+
+servicesSection.addEventListener("pointerleave", (event) => {
+    // Mouse ke liye existing hover behaviour
+    if (event.pointerType !== "touch") {
         mouse.active = false;
-
         mouse.targetX = -1000;
         mouse.targetY = -1000;
-
     }
-);
+});
 
+servicesSection.addEventListener("pointercancel", () => {
+    clearTimeout(touchReleaseTimer);
+    mouse.active = false;
+    mouse.targetX = -1000;
+    mouse.targetY = -1000;
+});
 
 /* =========================================
    SMOOTH MOUSE
